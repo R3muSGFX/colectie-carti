@@ -2,7 +2,7 @@
 import { useLayout } from '@/components/shared/layout';
 import { computed } from 'vue';
 
-import { Toast } from 'primevue';
+import Toast from 'primevue/toast';
 
 import AppFooter from './AppFooter.vue';
 import AppTopbar from './AppTopbar.vue';
@@ -31,5 +31,5 @@ const containerClass = computed(() => {
         </div>
         <div class="layout-mask animate-fadein"></div>
     </div>
-    <Toast />
+    <Toast position="top-center" group="tc" />
 </template>
