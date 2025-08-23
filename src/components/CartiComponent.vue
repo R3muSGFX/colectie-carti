@@ -10,7 +10,8 @@ import {
     Column,
     InputText,
     IconField,
-    InputIcon
+    InputIcon,
+    Rating
 } from 'primevue';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 // import { useToast } from 'primevue/usetoast';
@@ -184,6 +185,11 @@ function openNew() {
                         <InputText v-model="filterModel.value" type="text" placeholder="Caută după descriere" />
                     </template>
                 </Column>
+                <Column field="rating" header="Rating" sortable style="min-width: 12rem">
+                    <template #body="slotProps">
+                        <Rating :modelValue="slotProps.data.rating" :readonly="true" />
+                    </template>
+                </Column>
                 <Column header="Imagine">
                     <template #body="{ data }">
                         <div class="flex items-center gap-2">
@@ -191,19 +197,6 @@ function openNew() {
                         </div>
                     </template>
                 </Column>
-                <!--<Column field="rating" header="Reviews" sortable style="min-width: 12rem">
-                    <template #body="slotProps">
-                        <Rating :modelValue="slotProps.data.rating" :readonly="true" />
-                    </template>
-                </Column>
-                <Column :exportable="false" style="min-width: 12rem">
-                    <template #body="slotProps">
-                        <Button icon="pi pi-pencil" outlined rounded class="mr-2"
-                            @click="editProduct(slotProps.data)" />
-                        <Button icon="pi pi-trash" outlined rounded severity="danger"
-                            @click="confirmDeleteProduct(slotProps.data)" />
-                    </template>
-                </Column> -->
             </DataTable>
         </div>
 
