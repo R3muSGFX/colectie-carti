@@ -1,8 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 
-import { CartiService } from '@/services/carti-service';
-
 import { 
     Toolbar,
     Button,
@@ -11,25 +9,28 @@ import {
     InputText,
     IconField,
     InputIcon,
-    Rating
+    Rating,
+    Textarea,
+    Dialog
 } from 'primevue';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
-// import { useToast } from 'primevue/usetoast';
+import { useToast } from 'primevue/usetoast';
+
+import { CartiService } from '@/services/carti-service';
 
 onMounted(async () => {
     await CartiService.getCartiInitial();
     carti.value = CartiService.cartiSelect();
 });
 
-// const toast = useToast();
+const toast = useToast();
 const dt = ref();
 const carti = ref();
-// const carteDialog = ref(false);
-// const deleteProductDialog = ref(false);
-// const deleteProductsDialog = ref(false);
-// const carte = ref({});
+const carteDialog = ref(false);
+const deleteCarteDialog = ref(false);
+const carte = ref({});
 const selectedCarti = ref();
-// const submitted = ref(false);
+const submitted = ref(false);
 
 const filters = ref();
 const initFilters = () => {
@@ -55,54 +56,55 @@ const clearFilter = () => {
 // };
 
 function openNew() {
-    // carte.value = {};
-    // submitted.value = false;
-    // carteDialog.value = true;
+    carte.value = {};
+    submitted.value = false;
+    carteDialog.value = true;
 }
 
-// function hideDialog() {
-//     carteDialog.value = false;
-//     submitted.value = false;
-// }
+function hideDialog() {
+    carteDialog.value = false;
+    submitted.value = false;
+}
 
-// function saveProduct() {
-//     submitted.value = true;
+function saveCarte() {
+    submitted.value = true;
 
-//     if (carte?.value.name?.trim()) {
-//         if (carte.value.id) {
-//             carte.value.inventoryStatus = carte.value.inventoryStatus.value ? carte.value.inventoryStatus.value : carte.value.inventoryStatus;
-//             cartes.value[findIndexById(carte.value.id)] = carte.value;
-//             toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-//         } else {
-//             carte.value.id = createId();
-//             carte.value.code = createId();
-//             carte.value.image = 'carte-placeholder.svg';
-//             carte.value.inventoryStatus = carte.value.inventoryStatus ? carte.value.inventoryStatus.value : 'INSTOCK';
-//             cartes.value.push(carte.value);
-//             toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-//         }
+    carte.value.id = createId();
+    
+    try {
+        // carte.value.image = // transform to base64
 
-//         carteDialog.value = false;
-//         carte.value = {};
-//     }
-// }
+        CartiService.cartiInsert(carte.value);
+        carti.value = CartiService.cartiSelect();
+
+        showSuccess('Cartea a fost adăugată cu succes!');
+
+        carteDialog.value = false;
+        carte.value = {};
+    } catch (error) {
+        showError('A apărut o eroare la adăugarea cărții.');
+    }
+}
 
 // function editProduct(prod) {
 //     carte.value = { ...prod };
 //     carteDialog.value = true;
 // }
 
-// function confirmDeleteProduct(prod) {
-//     carte.value = prod;
-//     deleteProductDialog.value = true;
-// }
+function confirmDeleteCarte(prod) {
+    carte.value = prod;
+    deleteCarteDialog.value = true;
+}
 
-// function deleteProduct() {
-//     cartes.value = cartes.value.filter((val) => val.id !== carte.value.id);
-//     deleteProductDialog.value = false;
-//     carte.value = {};
-//     toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
-// }
+function deleteCarte() {
+    CartiService.cartiDelete(carte.value.id);
+    carti.value = CartiService.cartiSelect();
+    
+    deleteCarteDialog.value = false;
+    carte.value = {};
+
+    showSuccess('Cartea a fost ștearsă cu succes!');
+}
 
 // function findIndexById(id) {
 //     let index = -1;
@@ -116,21 +118,20 @@ function openNew() {
 //     return index;
 // }
 
-// function createId() {
-//     let id = '';
-//     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//     for (var i = 0; i < 5; i++) {
-//         id += chars.charAt(Math.floor(Math.random() * chars.length));
-//     }
-//     return id;
-// }
+function createId() {
+    let id = -1;
+    
+    return id;
+}
 
-// function deleteselectedCarti() {
-//     cartes.value = cartes.value.filter((val) => !selectedCarti.value.includes(val));
-//     deleteProductsDialog.value = false;
-//     selectedCarti.value = null;
-//     toast.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
-// }
+function showError(message) {
+    toast.add({ severity: 'error', summary: 'Eroare', detail: message, life: 5000, group: 'tc' });
+}
+
+function showSuccess(message) {
+    toast.add({ severity: 'success', summary: 'Succes', detail: message, life: 3000, group: 'tc' });
+}
+
 </script>
 
 <template>
@@ -197,92 +198,45 @@ function openNew() {
                         </div>
                     </template>
                 </Column>
+                <Column :exportable="false" style="min-width: 12rem">
+                    <template #body="slotProps">
+                        <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editCarte(slotProps.data)" />
+                        <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteCarte(slotProps.data)" />
+                    </template>
+                </Column>
             </DataTable>
         </div>
 
-        <!-- <Dialog v-model:visible="carteDialog" :style="{ width: '450px' }" header="Product Details" :modal="true">
+        <Dialog v-model:visible="carteDialog" :style="{ width: '450px' }" header="Adăugare carte" :modal="true">
             <div class="flex flex-col gap-6">
-                <img v-if="carte.image" :src="`https://primefaces.org/cdn/primevue/images/carte/${carte.image}`"
-                    :alt="carte.image" class="block m-auto pb-4" />
                 <div>
-                    <label for="name" class="block font-bold mb-3">Name</label>
-                    <InputText id="name" v-model.trim="carte.name" required="true" autofocus
-                        :invalid="submitted && !carte.name" fluid />
-                    <small v-if="submitted && !carte.name" class="text-red-500">Name is required.</small>
+                    <label for="titlu" class="block font-bold mb-3">Titlu</label>
+                    <InputText id="titlu" v-model.trim="carte.titlu" required="true" autofocus
+                        :invalid="submitted && !carte.titlu" fluid />
+                    <small v-if="submitted && !carte.titlu" class="text-red-500">Titlu este necesar.</small>
                 </div>
                 <div>
-                    <label for="description" class="block font-bold mb-3">Description</label>
+                    <label for="description" class="block font-bold mb-3">Descriere</label>
                     <Textarea id="description" v-model="carte.description" required="true" rows="3" cols="20" fluid />
                 </div>
-                <div>
-                    <label for="inventoryStatus" class="block font-bold mb-3">Inventory Status</label>
-                    <Select id="inventoryStatus" v-model="carte.inventoryStatus" :options="statuses"
-                        optionLabel="label" placeholder="Select a Status" fluid></Select>
-                </div>
-
-                <div>
-                    <span class="block font-bold mb-4">Category</span>
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="flex items-center gap-2 col-span-6">
-                            <RadioButton id="category1" v-model="carte.category" name="category"
-                                value="Accessories" />
-                            <label for="category1">Accessories</label>
-                        </div>
-                        <div class="flex items-center gap-2 col-span-6">
-                            <RadioButton id="category2" v-model="carte.category" name="category" value="Clothing" />
-                            <label for="category2">Clothing</label>
-                        </div>
-                        <div class="flex items-center gap-2 col-span-6">
-                            <RadioButton id="category3" v-model="carte.category" name="category"
-                                value="Electronics" />
-                            <label for="category3">Electronics</label>
-                        </div>
-                        <div class="flex items-center gap-2 col-span-6">
-                            <RadioButton id="category4" v-model="carte.category" name="category" value="Fitness" />
-                            <label for="category4">Fitness</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-6">
-                        <label for="price" class="block font-bold mb-3">Price</label>
-                        <InputNumber id="price" v-model="carte.price" mode="currency" currency="USD" locale="en-US"
-                            fluid />
-                    </div>
-                    <div class="col-span-6">
-                        <label for="quantity" class="block font-bold mb-3">Quantity</label>
-                        <InputNumber id="quantity" v-model="carte.quantity" integeronly fluid />
-                    </div>
-                </div>
             </div>
 
             <template #footer>
-                <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-                <Button label="Save" icon="pi pi-check" @click="saveProduct" />
-            </template>
-        </Dialog> -->
-
-        <!-- <Dialog v-model:visible="deleteProductDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
-            <div class="flex items-center gap-4">
-                <i class="pi pi-exclamation-triangle !text-3xl" />
-                <span v-if="carte">Are you sure you want to delete <b>{{ carte.name }}</b>?</span>
-            </div>
-            <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="deleteProductDialog = false" />
-                <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
+                <Button label="Anulează" icon="pi pi-times" text @click="hideDialog" />
+                <Button label="Salvează" icon="pi pi-check" @click="saveCarte" />
             </template>
         </Dialog>
 
-        <Dialog v-model:visible="deleteProductsDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+        <Dialog v-model:visible="deleteCarteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl" />
-                <span v-if="carte">Are you sure you want to delete the selected cartes?</span>
+                <span v-if="carte">Sunteți sigur că doriți să ștergeți cartea <b>{{ carte.titlu }}</b>?</span>
             </div>
             <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="deleteProductsDialog = false" />
-                <Button label="Yes" icon="pi pi-check" text @click="deleteselectedCarti" />
+                <Button label="Nu" icon="pi pi-times" text @click="deleteCarteDialog = false" />
+                <Button label="Da" icon="pi pi-check" @click="deleteCarte" />
             </template>
-        </Dialog> -->
+        </Dialog>
+
     </div>
 </template>
