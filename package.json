@@ -1,7 +1,6 @@
 {
   "name": "colectie-carti",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -10,8 +9,10 @@
   "dependencies": {
     "@primeuix/themes": "^1.2.3",
     "core-js": "^3.8.3",
+    "primeicons": "^7.0.0",
     "primevue": "^4.3.7",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vue-router": "^4.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -35,11 +36,5 @@
       "parser": "@babel/eslint-parser"
     },
     "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ]
+  }
 }
