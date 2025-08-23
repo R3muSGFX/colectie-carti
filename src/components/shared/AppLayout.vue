@@ -1,6 +1,9 @@
 <script setup>
 import { useLayout } from '@/components/shared/layout';
 import { computed } from 'vue';
+
+import { Toast } from 'primevue';
+
 import AppFooter from './AppFooter.vue';
 import AppTopbar from './AppTopbar.vue';
 

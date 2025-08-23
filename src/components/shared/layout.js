@@ -5,17 +5,13 @@ const layoutConfig = reactive({
     primary: 'blue',
     surface: 'slate',
     darkTheme: true,
-    menuMode: 'static'
+    menuMode: 'overlay'
 });
 
 const layoutState = reactive({
     staticMenuDesktopInactive: false,
-    overlayMenuActive: false,
-    profileSidebarVisible: false,
-    configSidebarVisible: false,
-    staticMenuMobileActive: false,
-    menuHoverActive: false,
-    activeMenuItem: null
+    overlayMenuActive: true,
+    staticMenuMobileActive: false
 });
 
 export function useLayout() {
