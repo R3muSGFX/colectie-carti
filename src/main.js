@@ -1,13 +1,26 @@
-import { createApp } from 'vue'
-import PrimeVue from 'primevue/config';
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+
 import Aura from '@primeuix/themes/aura';
-import App from './App.vue'
+import PrimeVue from 'primevue/config';
+import ConfirmationService from 'primevue/confirmationservice';
+import ToastService from 'primevue/toastservice';
+
+import '@/assets/styles.scss';
 
 const app = createApp(App);
+
+app.use(router);
 app.use(PrimeVue, {
     ripple: true,
     inputStyle: 'filled',
-    theme: Aura,
+    theme: {
+        preset: Aura,
+        options: {
+            darkModeSelector: '.app-dark'
+        }
+    },
     zIndex: {
         modal: 1100,        //dialog, drawer
         overlay: 1000,      //select, popover
@@ -15,4 +28,7 @@ app.use(PrimeVue, {
         tooltip: 1100       //tooltip
     }
 });
+app.use(ToastService);
+app.use(ConfirmationService);
+
 app.mount('#app');
