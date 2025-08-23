@@ -1,15 +1,22 @@
 <script setup>
-// import { ref } from 'vue';
+import { ref } from 'vue';
 import { useLayout } from '@/components/shared/layout';
+import MegaMenu from 'primevue/megamenu';
 
 const { toggleDarkMode, isDarkTheme } = useLayout();
 
-// const menuItems = ref([
-//     {
-//         label: 'Cărți',
-//         icon: 'pi pi-fw pi-sign-out'
-//     }
-// ]);
+const menuItems = ref([
+    {
+        label: 'Cărți',
+        icon: 'pi pi-fw pi-book',
+        route: '/carti'
+    },
+    {
+        label: 'Despre',
+        icon: 'pi pi-fw pi-info',
+        route: '/about'
+    }
+]);
 
 </script>
 
@@ -39,7 +46,14 @@ const { toggleDarkMode, isDarkTheme } = useLayout();
         </div>
 
         <div>
-            <!-- <MegaMenu :model="menuItems" /> -->
+            <MegaMenu :model="menuItems">
+                <template #item="{ item }">
+                    <router-link :to="item.route">
+                        <i :class="item.icon"></i>
+                        {{ item.label }}
+                    </router-link>
+                </template>
+            </MegaMenu>
         </div>
 
         <div class="layout-topbar-actions">
