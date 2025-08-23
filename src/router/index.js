@@ -16,12 +16,12 @@ const router = createRouter({
 				{
 					path: "/carti",
 					name: "carti",
-					component: () => import("@/components/Carti.vue"),
+					component: () => import("@/components/CartiComponent.vue"),
 				},
 				{
 					path: "/about",
 					name: "about",
-					component: () => import("@/components/About.vue"),
+					component: () => import("@/components/AboutComponent.vue"),
 				},
 			],
 		},
