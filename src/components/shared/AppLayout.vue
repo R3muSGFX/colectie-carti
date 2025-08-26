@@ -4,8 +4,8 @@ import { computed } from 'vue';
 
 import Toast from 'primevue/toast';
 
-import AppFooter from './AppFooter.vue';
 import AppTopbar from './AppTopbar.vue';
+import AppFooter from './AppFooter.vue';
 
 const { layoutConfig, layoutState } = useLayout();
 

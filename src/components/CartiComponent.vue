@@ -36,8 +36,9 @@ const filters = ref();
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-        titlu: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        
+        titlu: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        descriere: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 
@@ -46,14 +47,6 @@ initFilters();
 const clearFilter = () => {
     initFilters();
 };
-
-// const formatDate = (value) => {
-//     return value.toLocaleDateString('ro-RO', {
-//         day: '2-digit',
-//         month: '2-digit',
-//         year: 'numeric'
-//     });
-// };
 
 function openNew() {
     carte.value = {};
@@ -106,21 +99,11 @@ function deleteCarte() {
     showSuccess('Cartea a fost ștearsă cu succes!');
 }
 
-// function findIndexById(id) {
-//     let index = -1;
-//     for (let i = 0; i < cartes.value.length; i++) {
-//         if (cartes.value[i].id === id) {
-//             index = i;
-//             break;
-//         }
-//     }
-
-//     return index;
-// }
-
 function createId() {
     let id = -1;
     
+    // TODO: de adăugat logică pentru preluare ID din "baza de date"
+
     return id;
 }
 
@@ -146,18 +129,22 @@ function showSuccess(message) {
             <DataTable ref="dt"
                 dataKey="id"
                 v-model:selection="selectedCarti"
+                :value="carti"
                 sortField="id"
                 :sortOrder="1"
-                :value="carti"  
+                removableSort
                 :paginator="true"
-                :rows="10" 
-                :filters="filters"
+                :rows="10"
+                v-model:filters="filters"
                 filterDisplay="menu"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
-                currentPageReportTemplate="Afișare {first} din {last} din {totalRecords} cărți">
+                currentPageReportTemplate="De la {first} până la {last} (din totalul de {totalRecords} înregistrări)"
+                resizableColumns
+                columnResizeMode="fit"
+                showGridlines>
                 <template #header>
-                    <div class="flex">
+                    <div class="flex justify-between">
                         <Button type="button" icon="pi pi-filter-slash" label="Elimină filtre" variant="outlined" @click="clearFilter()" />
                         <IconField>
                             <InputIcon>
@@ -170,7 +157,7 @@ function showSuccess(message) {
                 <template #empty>Nici o carte înregistrată.</template>
 
                 <Column field="id" header="ID" sortable style="min-width: 8rem"></Column>
-                <Column field="titlu" header="Titlu" sortable style="min-width: 14rem">
+                <Column field="titlu" header="Titlu" sortable filterField="titlu" style="min-width: 14rem">
                     <template #body="{ data }">
                         {{ data.titlu }}
                     </template>
