@@ -1,5 +1,6 @@
 export const CartiService = {
 	storageKey: "cartiData",
+	primaryKey: 0,
 
 	async getCartiInitial() {
 		let filePath = new URL("@/carti-db.json", import.meta.url).pathname;
@@ -7,19 +8,15 @@ export const CartiService = {
 		try {
 			const response = await fetch(filePath);
 			if (!response.ok) {
-				throw new Error(`Failed to load ${filePath}: ${response.statusText}`);
+				throw new Error(`Nu am putut încărca fișierul din ${filePath}: ${response.statusText}`);
 			}
 
 			const data = await response.json();
 			localStorage.setItem(this.storageKey, JSON.stringify(data));
+			this.primaryKey = data.length > 0 ? Math.max(...data.map(carte => carte.id)) + 1 : 1;
 		} catch (error) {
-			console.error("❌ Error loading JSON:", error);
+			console.error("A apărut o eroare:", error);
 		}
-	},
-
-	cartiSelect() {
-		let storedData = localStorage.getItem(this.storageKey);
-		return storedData ? JSON.parse(storedData) : [];
 	},
 
 	cartiGetById(id) {
@@ -28,9 +25,15 @@ export const CartiService = {
 		return carti.find(carte => carte.id === id);
 	},
 
+	cartiSelect() {
+		let storedData = localStorage.getItem(this.storageKey);
+		return storedData ? JSON.parse(storedData) : [];
+	},
+
 	cartiInsert(carte) {
 		let storedData = localStorage.getItem(this.storageKey);
 		let carti = storedData ? JSON.parse(storedData) : [];
+		carte.id = this.primaryKey++;
 		carti.push(carte);
 		localStorage.setItem(this.storageKey, JSON.stringify(carti));
 	},

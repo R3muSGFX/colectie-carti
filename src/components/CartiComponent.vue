@@ -7,11 +7,15 @@ import {
     DataTable,
     Column,
     InputText,
+    InputNumber,
     IconField,
     InputIcon,
     Rating,
     Textarea,
-    Dialog
+    Dialog,
+    FileUpload,
+    Image,
+    Fieldset
 } from 'primevue';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
@@ -42,6 +46,9 @@ const initFilters = () => {
     };
 };
 
+// Fisiere
+const srcBase64 = ref(null);
+
 initFilters();
 
 const clearFilter = () => {
@@ -57,21 +64,34 @@ function openNew() {
 function hideDialog() {
     carteDialog.value = false;
     submitted.value = false;
+    carte.value = null;
+    srcBase64.value = null;
 }
 
 function saveCarte() {
     submitted.value = true;
 
-    carte.value.id = createId();
-    
     try {
-        // carte.value.image = // transform to base64
+        // Dacă avem imagine din upload, o completăm
+        if (srcBase64.value) {
+            // Completăm valoarea base64 a imaginii
+            carte.value.image = srcBase64.value;
+        }
 
-        CartiService.cartiInsert(carte.value);
+        if (carte.value.id && carte.value.id !== 0) {
+            // Actualizăm cartea existentă
+            CartiService.cartiUpdate(carte.value.id, carte.value);
+            showSuccess('Cartea a fost actualizată cu succes!');
+        } else {
+            // Adăugăm cartea în "baza de date"
+            CartiService.cartiInsert(carte.value);
+            showSuccess('Cartea a fost adăugată cu succes!');
+        }
+        
+        // Readucem toate valorile
         carti.value = CartiService.cartiSelect();
 
-        showSuccess('Cartea a fost adăugată cu succes!');
-
+        // Închidem modalul
         carteDialog.value = false;
         carte.value = {};
     } catch (error) {
@@ -79,13 +99,13 @@ function saveCarte() {
     }
 }
 
-// function editProduct(prod) {
-//     carte.value = { ...prod };
-//     carteDialog.value = true;
-// }
+function editCarte(entity) {
+    carte.value = { ...entity };
+    carteDialog.value = true;
+}
 
-function confirmDeleteCarte(prod) {
-    carte.value = prod;
+function confirmDeleteCarte(entity) {
+    carte.value = entity;
     deleteCarteDialog.value = true;
 }
 
@@ -99,20 +119,28 @@ function deleteCarte() {
     showSuccess('Cartea a fost ștearsă cu succes!');
 }
 
-function createId() {
-    let id = -1;
-    
-    // TODO: de adăugat logică pentru preluare ID din "baza de date"
-
-    return id;
-}
-
 function showError(message) {
     toast.add({ severity: 'error', summary: 'Eroare', detail: message, life: 5000, group: 'tc' });
 }
 
 function showSuccess(message) {
     toast.add({ severity: 'success', summary: 'Succes', detail: message, life: 3000, group: 'tc' });
+}
+
+function onFileSelect(event) {
+    try {
+        const file = event.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            srcBase64.value = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    } catch (error) {
+        showError('A apărut o eroare la încărcarea fișierului.');
+        console.error(error);
+    }
 }
 
 </script>
@@ -126,7 +154,7 @@ function showSuccess(message) {
                 </template>
             </Toolbar>
 
-            <DataTable ref="dt"
+            <DataTable ref="dt" class="mt-3"
                 dataKey="id"
                 v-model:selection="selectedCarti"
                 :value="carti"
@@ -196,16 +224,64 @@ function showSuccess(message) {
 
         <Dialog v-model:visible="carteDialog" :style="{ width: '450px' }" header="Adăugare carte" :modal="true">
             <div class="flex flex-col gap-6">
-                <div>
-                    <label for="titlu" class="block font-bold mb-3">Titlu</label>
-                    <InputText id="titlu" v-model.trim="carte.titlu" required="true" autofocus
-                        :invalid="submitted && !carte.titlu" fluid />
-                    <small v-if="submitted && !carte.titlu" class="text-red-500">Titlu este necesar.</small>
-                </div>
-                <div>
-                    <label for="description" class="block font-bold mb-3">Descriere</label>
-                    <Textarea id="description" v-model="carte.description" required="true" rows="3" cols="20" fluid />
-                </div>
+                <Fieldset legend="Detalii">
+                    <div>
+                        <label for="titlu" class="block font-bold mb-3">Titlu</label>
+                        <InputText id="titlu" v-model.trim="carte.titlu" required="true" autofocus
+                            :invalid="submitted && !carte.titlu" fluid />
+                        <small v-if="submitted && !carte.titlu" class="text-red-500">Titlu este necesar.</small>
+                    </div>
+                    <div>
+                        <label for="descriere" class="block font-bold mb-3">Descriere</label>
+                        <Textarea id="descriere" v-model="carte.descriere" required="true" rows="3" cols="20" :invalid="submitted && !carte.descriere" fluid />
+                        <small v-if="submitted && !carte.descriere" class="text-red-500">Descrierea este necesară.</small>
+                    </div>
+                    <div>
+                        <label for="autor" class="block font-bold mb-3">Autor</label>
+                        <InputText id="autor" v-model.trim="carte.autor" required="true" :invalid="submitted && !carte.autor" fluid />
+                        <small v-if="submitted && !carte.autor" class="text-red-500">Autorul este necesar.</small>
+                    </div>
+                    <div>
+                        <label for="gen" class="block font-bold mb-3">Gen</label>
+                        <InputText id="gen" v-model.trim="carte.gen" required="true" :invalid="submitted && !carte.gen" fluid />
+                        <small v-if="submitted && !carte.gen" class="text-red-500">Genul este necesar.</small>
+                    </div>
+                    <div>
+                        <label for="publicat" class="block font-bold mb-3">Anul publicării</label>
+                        <InputNumber id="publicat" v-model="carte.publicat" :useGrouping="false" :min="0" :max="9999" fluid />
+                    </div>
+                </Fieldset>
+
+                <Fieldset legend="Imagine">
+                    <div class="card flex justify-center">
+                        <Image alt="Image" preview>
+                            <template #previewicon>
+                                <i class="pi pi-search"></i>
+                            </template>
+                            <template #image>
+                                <img :src="carte.imagine" alt="image" width="250" />
+                            </template>
+                            <template #preview="slotProps">
+                                <img :src="carte.imagine" alt="preview" :style="slotProps.style" @click="slotProps.onClick" />
+                            </template>
+                        </Image>
+                    </div>
+                    <div class="col-span-full lg:col-span-6">
+                        <div class="card">
+                            <div class="font-semibold text-xl mb-4">Imagine</div>
+                            <FileUpload
+                                mode="advanced"
+                                :multiple="false"
+                                accept="image/*"
+                                :maxFileSize="10000000"
+                                :fileLimit="1"
+                                :customUpload="true"
+                                :showUploadButton="false"
+                                @select="onFileSelect"
+                             />
+                        </div>
+                    </div>
+                </Fieldset>
             </div>
 
             <template #footer>
