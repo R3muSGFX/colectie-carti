@@ -10,6 +10,7 @@ import ToastService from 'primevue/toastservice';
 import 'primeicons/primeicons.css'
 import '@/assets/tailwind.css';
 import '@/assets/styles.scss';
+import '@/assets/layout/layout.scss';
 
 
 const app = createApp(App);

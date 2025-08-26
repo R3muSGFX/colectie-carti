@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 import { 
     Toolbar,
@@ -17,6 +17,7 @@ import {
     Image,
     Fieldset
 } from 'primevue';
+import Divider from 'primevue/divider';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 
@@ -33,8 +34,9 @@ const carti = ref();
 const carteDialog = ref(false);
 const deleteCarteDialog = ref(false);
 const carte = ref({});
-const selectedCarti = ref();
+const selectedCarte = ref();
 const submitted = ref(false);
+const esteRandSelectat = ref(false);
 
 const filters = ref();
 const initFilters = () => {
@@ -53,19 +55,49 @@ initFilters();
 
 const clearFilter = () => {
     initFilters();
+
+    selectedCarte.value = null;
 };
 
-function openNew() {
+function incarcaDate() {
+    carti.value = CartiService.cartiSelect();
+    selectedCarte.value = null;
+    dt.value.reset();
+    initFilters();
+    showSuccess('Datele au fost reîncărcate cu succes!');
+}
+
+function vizualizeaza() {
+    if (!selectedCarte.value) {
+        showError('Selectați o carte pentru vizualizare.');
+        return;
+    }
+
+
+}
+
+function adauga() {
     carte.value = {};
     submitted.value = false;
     carteDialog.value = true;
 }
 
-function hideDialog() {
-    carteDialog.value = false;
-    submitted.value = false;
-    carte.value = null;
-    srcBase64.value = null;
+function modifica() {
+    if (!selectedCarte.value) {
+        showError('Selectați o carte pentru modificare.');
+        return;
+    }
+
+    this.editCarte(selectedCarte.value);
+}
+
+function sterge() {
+    if (!selectedCarte.value) {
+        showError('Selectați o carte pentru ștergere.');
+        return;
+    }
+
+    this.confirmDeleteCarte(selectedCarte.value);
 }
 
 function saveCarte() {
@@ -119,6 +151,8 @@ function deleteCarte() {
     showSuccess('Cartea a fost ștearsă cu succes!');
 }
 
+
+
 function showError(message) {
     toast.add({ severity: 'error', summary: 'Eroare', detail: message, life: 5000, group: 'tc' });
 }
@@ -143,20 +177,41 @@ function onFileSelect(event) {
     }
 }
 
+function hideDialog() {
+    carteDialog.value = false;
+    submitted.value = false;
+    carte.value = null;
+    srcBase64.value = null;
+}
+
+watch(selectedCarte, (newVal) => {
+    esteRandSelectat.value = !!newVal;
+});
+
 </script>
 
 <template>
     <div>
         <div class="card">
-            <Toolbar class="mb-6">
+            <Toolbar>
                 <template #start>
-                    <Button label="Adaugă" icon="pi pi-plus" severity="secondary" @click="openNew" />
+                    <Button label="Reîncarcă" icon="pi pi-refresh" severity="primary" @click="incarcaDate" />
+                    <Button label="Vizualizează" icon="pi pi-eye" severity="primary" 
+                        @click="vizualizeaza" :disabled="!esteRandSelectat" />
+                    <Divider layout="vertical" />
+                    <Button label="Adaugă" icon="pi pi-plus" severity="secondary" variant="outlined" @click="adauga" />
+                    <Button label="Modifică" icon="pi pi-pencil" severity="secondary" variant="outlined" 
+                        @click="modifica" :disabled="!esteRandSelectat"/>
+                    <Button label="Șterge" icon="pi pi-trash" severity="danger" variant="outlined" 
+                        @click="sterge" :disabled="!esteRandSelectat"/>
                 </template>
             </Toolbar>
 
             <DataTable ref="dt" class="mt-3"
                 dataKey="id"
-                v-model:selection="selectedCarti"
+                selectionMode="single"
+                :metaKeySelection="metaKey"
+                v-model:selection="selectedCarte"
                 :value="carti"
                 sortField="id"
                 :sortOrder="1"
@@ -290,7 +345,7 @@ function onFileSelect(event) {
             </template>
         </Dialog>
 
-        <Dialog v-model:visible="deleteCarteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+        <Dialog v-model:visible="deleteCarteDialog" :style="{ width: '450px' }" header="ATENȚIE" :modal="true">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl" />
                 <span v-if="carte">Sunteți sigur că doriți să ștergeți cartea <b>{{ carte.titlu }}</b>?</span>
