@@ -34,7 +34,7 @@ export const CartiService = {
 	cartiGetById(id) {
 		let storedData = localStorage.getItem(this.storageKey);
 		let carti = storedData ? JSON.parse(storedData) : [];
-		return carti.find(carte => carte.id === id);
+		return carti.find(carte => carte.id == id);
 	},
 
 	cartiGetCount() {
