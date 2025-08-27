@@ -7,10 +7,6 @@ import { useToast } from 'primevue/usetoast';
 import router from '@/router';
 import { CartiService } from '@/services/carti-service';
 
-onMounted(() => {
-    carti.value = CartiService.cartiSelect();
-});
-
 const toast = useToast();
 const dt = ref();
 const carti = ref();
@@ -18,6 +14,7 @@ const deleteCarteDialog = ref(false);
 const carte = ref({});
 const selectedCarte = ref();
 const esteRandSelectat = ref(false);
+const loading = ref(false);
 
 const filters = ref();
 const initFilters = () => {
@@ -29,7 +26,7 @@ const initFilters = () => {
     };
 };
 
-initFilters();
+incarcaDate();
 
 const clearFilter = () => {
     initFilters();
@@ -38,10 +35,18 @@ const clearFilter = () => {
 };
 
 function incarcaDate() {
-    carti.value = CartiService.cartiSelect();
-    selectedCarte.value = null;
-    initFilters();
-    showSuccess('Datele au fost reîncărcate cu succes!');
+    loading.value = true;
+
+    try {
+        carti.value = CartiService.cartiSelect();
+        selectedCarte.value = null;
+        initFilters();
+    } catch (error) {
+        showError('A apărut o eroare la încărcarea datelor.');
+        console.error(error);
+    }
+
+    loading.value = false;
 }
 
 function vizualizeaza() {
@@ -136,7 +141,7 @@ watch(selectedCarte, (newVal) => {
                 :value="carti"
                 sortField="id"
                 :sortOrder="1"
-                removableSort
+                :loading="loading"
                 :paginator="true"
                 :rows="10"
                 v-model:filters="filters"
@@ -146,6 +151,7 @@ watch(selectedCarte, (newVal) => {
                 currentPageReportTemplate="De la {first} până la {last} (din totalul de {totalRecords} înregistrări)"
                 resizableColumns
                 columnResizeMode="fit"
+                removableSort
                 showGridlines>
                 <template #header>
                     <div class="flex justify-between">
@@ -159,6 +165,7 @@ watch(selectedCarte, (newVal) => {
                     </div>
                 </template><!-- /header -->
                 <template #empty>Nici o carte înregistrată.</template>
+                <template #loading>Se încarcă datele. Vă rugăm așteptați...</template>
 
                 <Column field="id" header="ID" sortable style="min-width: 8rem"></Column>
                 <Column field="titlu" header="Titlu" sortable filterField="titlu" style="min-width: 14rem">
