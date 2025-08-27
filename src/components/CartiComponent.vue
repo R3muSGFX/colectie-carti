@@ -1,23 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 
-import { 
-    Toolbar,
-    Button,
-    DataTable,
-    Column,
-    InputText,
-    InputNumber,
-    IconField,
-    InputIcon,
-    Rating,
-    Textarea,
-    Dialog,
-    FileUpload,
-    Image,
-    Fieldset
-} from 'primevue';
-import Divider from 'primevue/divider';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 
@@ -62,7 +45,6 @@ const clearFilter = () => {
 function incarcaDate() {
     carti.value = CartiService.cartiSelect();
     selectedCarte.value = null;
-    dt.value.reset();
     initFilters();
     showSuccess('Datele au fost reîncărcate cu succes!');
 }
@@ -88,7 +70,7 @@ function modifica() {
         return;
     }
 
-    this.editCarte(selectedCarte.value);
+    editCarte(selectedCarte.value);
 }
 
 function sterge() {
@@ -97,7 +79,7 @@ function sterge() {
         return;
     }
 
-    this.confirmDeleteCarte(selectedCarte.value);
+    confirmDeleteCarte(selectedCarte.value);
 }
 
 function saveCarte() {
@@ -195,14 +177,16 @@ watch(selectedCarte, (newVal) => {
         <div class="card">
             <Toolbar>
                 <template #start>
-                    <Button label="Reîncarcă" icon="pi pi-refresh" severity="primary" @click="incarcaDate" />
+                    <Button label="Reîncarcă" icon="pi pi-refresh" severity="primary" class="mr-2"
+                        @click="incarcaDate" />
                     <Button label="Vizualizează" icon="pi pi-eye" severity="primary" 
                         @click="vizualizeaza" :disabled="!esteRandSelectat" />
                     <Divider layout="vertical" />
-                    <Button label="Adaugă" icon="pi pi-plus" severity="secondary" variant="outlined" @click="adauga" />
-                    <Button label="Modifică" icon="pi pi-pencil" severity="secondary" variant="outlined" 
+                    <Button label="Adaugă" icon="pi pi-plus" severity="secondary" variant="outlined" class="mr-2"
+                        @click="adauga" />
+                    <Button label="Modifică" icon="pi pi-pencil" severity="secondary" variant="outlined" class="mr-2"
                         @click="modifica" :disabled="!esteRandSelectat"/>
-                    <Button label="Șterge" icon="pi pi-trash" severity="danger" variant="outlined" 
+                    <Button label="Șterge" icon="pi pi-trash" severity="danger" variant="outlined"
                         @click="sterge" :disabled="!esteRandSelectat"/>
                 </template>
             </Toolbar>
@@ -210,7 +194,6 @@ watch(selectedCarte, (newVal) => {
             <DataTable ref="dt" class="mt-3"
                 dataKey="id"
                 selectionMode="single"
-                :metaKeySelection="metaKey"
                 v-model:selection="selectedCarte"
                 :value="carti"
                 sortField="id"
@@ -278,66 +261,78 @@ watch(selectedCarte, (newVal) => {
         </div>
 
         <Dialog v-model:visible="carteDialog" :style="{ width: '450px' }" header="Adăugare carte" :modal="true">
-            <div class="flex flex-col gap-6">
-                <Fieldset legend="Detalii">
-                    <div>
-                        <label for="titlu" class="block font-bold mb-3">Titlu</label>
-                        <InputText id="titlu" v-model.trim="carte.titlu" required="true" autofocus
-                            :invalid="submitted && !carte.titlu" fluid />
-                        <small v-if="submitted && !carte.titlu" class="text-red-500">Titlu este necesar.</small>
-                    </div>
-                    <div>
-                        <label for="descriere" class="block font-bold mb-3">Descriere</label>
-                        <Textarea id="descriere" v-model="carte.descriere" required="true" rows="3" cols="20" :invalid="submitted && !carte.descriere" fluid />
-                        <small v-if="submitted && !carte.descriere" class="text-red-500">Descrierea este necesară.</small>
-                    </div>
-                    <div>
-                        <label for="autor" class="block font-bold mb-3">Autor</label>
-                        <InputText id="autor" v-model.trim="carte.autor" required="true" :invalid="submitted && !carte.autor" fluid />
-                        <small v-if="submitted && !carte.autor" class="text-red-500">Autorul este necesar.</small>
-                    </div>
-                    <div>
-                        <label for="gen" class="block font-bold mb-3">Gen</label>
-                        <InputText id="gen" v-model.trim="carte.gen" required="true" :invalid="submitted && !carte.gen" fluid />
-                        <small v-if="submitted && !carte.gen" class="text-red-500">Genul este necesar.</small>
-                    </div>
-                    <div>
-                        <label for="publicat" class="block font-bold mb-3">Anul publicării</label>
-                        <InputNumber id="publicat" v-model="carte.publicat" :useGrouping="false" :min="0" :max="9999" fluid />
-                    </div>
-                </Fieldset>
-
-                <Fieldset legend="Imagine">
-                    <div class="card flex justify-center">
-                        <Image alt="Image" preview>
-                            <template #previewicon>
-                                <i class="pi pi-search"></i>
-                            </template>
-                            <template #image>
-                                <img :src="carte.imagine" alt="image" width="250" />
-                            </template>
-                            <template #preview="slotProps">
-                                <img :src="carte.imagine" alt="preview" :style="slotProps.style" @click="slotProps.onClick" />
-                            </template>
-                        </Image>
-                    </div>
-                    <div class="col-span-full lg:col-span-6">
-                        <div class="card">
-                            <div class="font-semibold text-xl mb-4">Imagine</div>
-                            <FileUpload
-                                mode="advanced"
-                                :multiple="false"
-                                accept="image/*"
-                                :maxFileSize="10000000"
-                                :fileLimit="1"
-                                :customUpload="true"
-                                :showUploadButton="false"
-                                @select="onFileSelect"
-                             />
+            <Fluid class="flex flex-col md:flex-row gap-12">
+                <div class="card flex flex-col gap-12">
+                    <Fieldset legend="Detalii">
+                        <div class="flex flex-col gap-8 mt-6">
+                            <FloatLabel>
+                                <label for="titlu" class="block font-bold mb-3">Titlu</label>
+                                <InputText id="titlu" v-model.trim="carte.titlu" required="true"
+                                    :invalid="submitted && !carte.titlu" fluid />
+                                <small v-if="submitted && !carte.titlu" class="text-red-500">Titlu este necesar.</small>
+                            </FloatLabel>
                         </div>
-                    </div>
-                </Fieldset>
-            </div>
+                        <div class="flex flex-col gap-8 mt-6">
+                            <FloatLabel>
+                                <label for="descriere" class="block font-bold mb-3">Descriere</label>
+                                <Textarea id="descriere" v-model="carte.descriere" required="true" rows="3" cols="20" :invalid="submitted && !carte.descriere" fluid />
+                                <small v-if="submitted && !carte.descriere" class="text-red-500">Descrierea este necesară.</small>
+                            </FloatLabel>
+                        </div>
+                        <div class="flex flex-col gap-8 mt-6">
+                            <FloatLabel>
+                                <label for="autor" class="block font-bold mb-3">Autor</label>
+                                <InputText id="autor" v-model.trim="carte.autor" required="true" :invalid="submitted && !carte.autor" fluid />
+                                <small v-if="submitted && !carte.autor" class="text-red-500">Autorul este necesar.</small>
+                            </FloatLabel>
+                        </div>
+                        <div class="flex flex-col gap-8 mt-6">
+                            <FloatLabel>
+                                <label for="gen" class="block font-bold mb-3">Gen</label>
+                                <InputText id="gen" v-model.trim="carte.gen" required="true" :invalid="submitted && !carte.gen" fluid />
+                                <small v-if="submitted && !carte.gen" class="text-red-500">Genul este necesar.</small>
+                            </FloatLabel>
+                        </div>
+                        <div class="flex flex-col gap-8 mt-6">
+                            <FloatLabel>
+                                <label for="publicat" class="block font-bold mb-3">Anul publicării</label>
+                                <InputNumber id="publicat" v-model="carte.publicat" :useGrouping="false" :min="0" :max="9999" fluid />
+                            </FloatLabel>
+                        </div>
+                    </Fieldset>
+
+                    <Fieldset legend="Imagine">
+                        <div class="card flex justify-center">
+                            <Image alt="Image" preview>
+                                <template #previewicon>
+                                    <i class="pi pi-search"></i>
+                                </template>
+                                <template #image>
+                                    <img :src="carte.imagine" alt="image" width="250" />
+                                </template>
+                                <template #preview="slotProps">
+                                    <img :src="carte.imagine" alt="preview" :style="slotProps.style" @click="slotProps.onClick" />
+                                </template>
+                            </Image>
+                        </div>
+                        <div class="col-span-full lg:col-span-6">
+                            <div class="card">
+                                <div class="font-semibold text-xl mb-4">Imagine</div>
+                                <FileUpload
+                                    mode="advanced"
+                                    :multiple="false"
+                                    accept="image/*"
+                                    :maxFileSize="10000000"
+                                    :fileLimit="1"
+                                    :customUpload="true"
+                                    :showUploadButton="false"
+                                    @select="onFileSelect"
+                                />
+                            </div>
+                        </div>
+                    </Fieldset>
+                </div>
+            </Fluid>
 
             <template #footer>
                 <Button label="Anulează" icon="pi pi-times" text @click="hideDialog" />
