@@ -6,8 +6,7 @@ import { useToast } from 'primevue/usetoast';
 
 import { CartiService } from '@/services/carti-service';
 
-onMounted(async () => {
-    await CartiService.getCartiInitial();
+onMounted(() => {
     carti.value = CartiService.cartiSelect();
 });
 
