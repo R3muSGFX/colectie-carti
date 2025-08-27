@@ -7,6 +7,11 @@ const { toggleDarkMode, isDarkTheme } = useLayout();
 
 const menuItems = ref([
     {
+        label: 'Dashboard',
+        icon: 'pi pi-fw pi-home',
+        route: '/dashboard'
+    },
+    {
         label: 'Cărți',
         icon: 'pi pi-fw pi-book',
         route: '/carti'
